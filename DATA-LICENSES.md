@@ -4,6 +4,10 @@ The code in this repo (`reddit-posts.html`, `generator.js`, the page code in `re
 
 The word data is different. `lexicon.json`, and the copy of it embedded in `reddit-posts-standalone.html` inside the `<script id="lexicon-data">` block, is derived from the sources listed here. Because it includes data adapted from wordfreq, which is licensed under CC BY-SA 4.0, the word data is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/). If you share or adapt it, keep this file with it and use the same license.
 
+## Photos
+
+The repo contains no photos. When the page is online, image posts load a photo from Wikimedia Commons at view time, and the photo keeps its own license. The caption under each photo links to its Commons file page and shows the author and license that Commons reports.
+
 ## What's in `lexicon.json`
 
 | Field | Source |

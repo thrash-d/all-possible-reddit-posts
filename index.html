@@ -87,6 +87,10 @@
   .bot { color: var(--text-2); }
   .botnote { color: var(--faint); font-size: 11px; font-style: italic; }
   .image { aspect-ratio: 16 / 9; max-height: 240px; max-width: 420px; border-radius: 4px; background: repeating-linear-gradient(45deg, #232325, #232325 12px, #1f1f21 12px, #1f1f21 24px); display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); font-size: 14px; font-style: italic; }
+  .photo { margin: 0; max-width: 420px; display: grid; gap: 4px; }
+  .photo img { display: block; max-width: 100%; max-height: 320px; border-radius: 4px; background: #1f1f21; }
+  .photo figcaption { color: var(--faint); font-size: 11px; overflow-wrap: anywhere; }
+  .photo figcaption a { color: inherit; }
   .optag { color: #4a90d9; font-weight: 700; }
 
   .sentinel { height: 1px; }
@@ -186,6 +190,48 @@
     return row;
   }
 
+  // Image posts get a real photo from Wikimedia Commons, searched by the
+  // post's thing. The striped placeholder stays if the search finds nothing
+  // or the page is offline. One request per word, cached for the session.
+  const photos = new Map();
+  function findPhotos(q) {
+    if (!photos.has(q)) {
+      const url = "https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*" +
+        "&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=" + encodeURIComponent(q + " filetype:bitmap") +
+        "&prop=imageinfo&iiprop=url|extmetadata&iiextmetadatafilter=Artist|LicenseShortName&iiurlwidth=640";
+      photos.set(q, fetch(url)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => Object.values((d && d.query && d.query.pages) || {})
+          .filter(pg => pg.imageinfo && pg.imageinfo[0].thumburl)
+          .sort((a, b) => a.index - b.index))
+        .catch(() => []));
+    }
+    return photos.get(q);
+  }
+  function showPhoto(box, p, seed) {
+    if (!p.photo) return;
+    findPhotos(p.photo).then(list => {
+      if (!list.length) return;
+      let h = 0;
+      for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      const pg = list[h % list.length], info = pg.imageinfo[0], meta = info.extmetadata || {};
+      const img = new Image();
+      img.alt = p.image;
+      img.decoding = "async";
+      img.addEventListener("load", () => {
+        const fig = el("figure", "photo");
+        const cap = el("figcaption");
+        const who = meta.Artist ? new DOMParser().parseFromString(meta.Artist.value, "text/html").body.textContent.trim() : "";
+        const link = el("a", null, pg.title.replace(/^File:/, ""));
+        link.href = info.descriptionurl; link.target = "_blank"; link.rel = "noopener";
+        cap.append(link, [who, meta.LicenseShortName && meta.LicenseShortName.value].filter(Boolean).map(t => " · " + t).join(""), " · Wikimedia Commons");
+        fig.append(img, cap);
+        if (box.isConnected) box.replaceWith(fig);
+      });
+      img.src = info.thumburl;
+    });
+  }
+
   // One comment and its replies, nested.
   function renderComment(c, op) {
     const box = el("div", "comment" + (c.stickied ? " sticky" : "") + (c.collapsed ? " buried" : ""));
@@ -227,7 +273,7 @@
     main.append(meta, title);
     if (p.awards.length) main.append(renderAwards(p.awards, true));
     if (p.quote) main.append(renderQuote(p.quote));
-    if (p.image) { const im = el("div", "image", p.image); im.setAttribute("role", "img"); im.setAttribute("aria-label", p.image); main.append(im); }
+    if (p.image) { const im = el("div", "image", p.image); im.setAttribute("role", "img"); im.setAttribute("aria-label", p.image); main.append(im); showPhoto(im, p, seed); }
     if (p.body) main.append(el("div", p.removed ? "body removed" : "body", p.body));
     if (p.archived) main.append(el("div", "archived", "Archived post. New comments cannot be posted and votes cannot be cast."));
 
