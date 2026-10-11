@@ -1,0 +1,30 @@
+# Secrets, by content class
+.env
+.env.*
+!.env.example
+credentials.*
+*.key
+*.pem
+*.bak
+*.har
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS and editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# Local Claude context, never commit
+CLAUDE.md
+CLAUDE-HISTORY.md
+.claude/
+
+# One-off handoff notes between sessions, never commit
+HANDOFF*.md

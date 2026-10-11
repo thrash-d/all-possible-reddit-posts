@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>All Possible Reddit Posts</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23e84430'/%3E%3Cpath d='M16 7l8 9h-5v9h-6v-9H8z' fill='%23141414'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #141414;
+    --surface: #1b1b1c;
+    --line: #2a2a2d;
+    --line-strong: #3a3a3f;
+    --text: #f5f6f8;
+    --text-2: #c9ccd2;
+    --muted: #969eaa;
+    --faint: #5f6570;
+    --accent: #e84430;
+    --accent-ink: #141414;
+    --shot-bg: #ffffff;
+    --shot-text: #0f1419;
+    --shot-muted: #536471;
+    --radius: 6px;
+    --sans: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  html, body { background: var(--bg); }
+  body {
+    margin: 0; color: var(--text-2); font-family: var(--sans); font-size: 15px; line-height: 1.55;
+    padding-inline: 16px; padding-block: 32px 64px; font-variant-numeric: tabular-nums;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 24px; }
+  header { display: grid; gap: 6px; }
+  h1 { margin: 0; color: var(--text); font-size: 24px; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .sub { margin: 0; color: var(--muted); }
+  .count { margin: 0; color: var(--faint); font-size: 12px; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px 24px; padding-block: 16px; border-block: 1px solid var(--line); }
+  .dial { display: grid; gap: 4px; min-width: 150px; flex: 1 1 150px; }
+  .dial label { white-space: nowrap; }
+  .dial label { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+  .dial output { color: var(--text-2); }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  button { font: inherit; cursor: pointer; border-radius: var(--radius); }
+  .primary { background: var(--accent); color: var(--accent-ink); border: 0; padding: 8px 14px; font-weight: 600; font-size: 14px; }
+  .primary:hover { filter: brightness(1.06); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .feed { display: grid; gap: 16px; }
+  .post { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); display: grid; grid-template-columns: 44px 1fr; overflow: hidden; }
+  .votes { background: #171718; display: grid; align-content: start; justify-items: center; gap: 2px; padding: 12px 0; color: var(--muted); font-size: 12px; font-weight: 600; }
+  .votes .up { color: var(--accent); font-size: 16px; line-height: 1; }
+  .votes .down { color: var(--faint); font-size: 16px; line-height: 1; }
+  .main { padding: 12px 16px 12px 12px; display: grid; gap: 8px; min-width: 0; }
+  .meta { color: var(--faint); font-size: 12px; overflow-wrap: anywhere; }
+  .meta b { color: var(--text); font-weight: 600; }
+  .title { margin: 0; color: var(--text); font-size: 18px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+  .flair { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--line-strong); color: var(--text-2); font-size: 12px; font-weight: 500; vertical-align: 2px; }
+  .body { white-space: pre-line; overflow-wrap: anywhere; }
+  .modtag { color: #2fb36b; font-weight: 700; }
+  .archived { color: var(--faint); font-size: 12px; }
+
+  /* A screenshot of a post from somewhere else, the way they get reposted. */
+  .shot { background: var(--shot-bg); color: var(--shot-text); border-radius: 4px; padding: 16px; display: grid; gap: 10px; max-width: 480px; }
+  .shot-prompt { font-size: 20px; line-height: 1.25; font-weight: 500; }
+  .shot-who { display: flex; gap: 10px; align-items: center; }
+  .shot-avatar { flex: 0 0 40px; height: 40px; border-radius: 50%; background: #c8b8a6; color: #4b3b2b; display: grid; place-items: center; font-weight: 700; }
+  .shot-name { font-weight: 700; line-height: 1.2; }
+  .shot-handle { display: block; width: 130px; height: 14px; margin-top: 4px; background: #000; }
+  .shot-headline { display: block; color: var(--shot-muted); font-size: 12px; }
+  .shot-text { white-space: pre-line; font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; color: var(--muted); font-size: 13px; }
+  .actions button { background: none; border: 0; padding: 0; color: var(--muted); font-size: 13px; }
+  .actions button:hover { color: var(--text); }
+  .no { margin-left: auto; color: var(--faint); font-size: 11px; overflow-wrap: anywhere; }
+  .thread { display: grid; gap: 10px; }
+  .comment { border-left: 2px solid var(--line-strong); padding: 2px 0 2px 12px; display: grid; gap: 2px; font-size: 14px; }
+  .comment .meta b { color: var(--text-2); }
+  .replies { display: grid; gap: 8px; margin-top: 6px; }
+  .buried { opacity: 0.55; }
+  .comment.sticky { border-left-color: #2fb36b; }
+  .lock { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #3a3220; color: #e8c15a; font-size: 12px; font-weight: 500; vertical-align: 2px; }
+  .removed { color: var(--faint); font-style: italic; }
+  .image { aspect-ratio: 16 / 9; max-height: 240px; max-width: 420px; border-radius: 4px; background: repeating-linear-gradient(45deg, #232325, #232325 12px, #1f1f21 12px, #1f1f21 24px); display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); font-size: 14px; font-style: italic; }
+  .optag { color: #4a90d9; font-weight: 700; }
+
+  .sentinel { height: 1px; }
+  .loading { color: var(--faint); font-size: 12px; text-align: center; }
+  footer { color: var(--faint); font-size: 12px; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--line-strong); color: var(--text); padding: 6px 12px; border-radius: var(--radius); font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>All Possible Reddit Posts</h1>
+    <p class="sub">Every post, eventually. True story.</p>
+    <p class="count" id="count">Loading the dictionary…</p>
+  </header>
+
+  <section class="controls" aria-label="Post settings">
+    <div class="dial">
+      <label for="coh">Coherence <output id="cohOut" for="coh"></output></label>
+      <input id="coh" type="range" min="0" max="3" step="1" value="2">
+    </div>
+    <div class="dial">
+      <label for="clap">Everyone clapped <output id="clapOut" for="clap"></output></label>
+      <input id="clap" type="range" min="0" max="3" step="1" value="2">
+    </div>
+    <div class="dial">
+      <label for="edits">Edits <output id="editsOut" for="edits"></output></label>
+      <input id="edits" type="range" min="0" max="3" step="1" value="1">
+    </div>
+    <div class="dial">
+      <label for="comms">Comments <output id="commsOut" for="comms"></output></label>
+      <input id="comms" type="range" min="0" max="3" step="1" value="2">
+    </div>
+    <button class="primary" id="refresh" type="button">Refresh feed</button>
+  </section>
+
+  <main class="feed" id="feed" aria-live="polite"></main>
+  <div class="sentinel" id="sentinel"></div>
+  <p class="loading" id="loading"></p>
+
+  <footer>Words are the whole English dictionary.</footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="generator.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const feed = $("feed");
+  let gen = null;
+
+  // ---------- render ----------
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  let toastTimer;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1400); }
+  async function copy(text) { try { await navigator.clipboard.writeText(text); toast("Copied"); } catch { toast("Copy blocked here. Select the text instead."); } }
+
+  function dials() { return { coh: +$("coh").value, clap: +$("clap").value, edits: +$("edits").value, comms: +$("comms").value }; }
+
+  function asText(p) {
+    const parts = [`r/${p.sub} · u/${p.user}`, p.title];
+    if (p.body) parts.push(p.body);
+    if (p.quote) parts.push([p.quote.prompt, p.quote.name, p.quote.text].filter(Boolean).join("\n\n"));
+    return parts.join("\n\n");
+  }
+
+  function renderQuote(q) {
+    const shot = el("div", "shot");
+    shot.setAttribute("role", "img");
+    shot.setAttribute("aria-label", "Screenshot of a post by " + q.name);
+    if (q.prompt) shot.append(el("div", "shot-prompt", q.prompt));
+    const who = el("div", "shot-who");
+    who.append(el("div", "shot-avatar", q.name[0]));
+    const id = el("div");
+    id.append(el("div", "shot-name", q.name));
+    id.append(q.headline ? el("span", "shot-headline", q.headline) : el("span", "shot-handle"));
+    who.append(id);
+    shot.append(who, el("div", "shot-text", q.text));
+    return shot;
+  }
+
+  // One comment and its replies, nested.
+  function renderComment(c, op) {
+    const box = el("div", "comment" + (c.stickied ? " sticky" : "") + (c.collapsed ? " buried" : ""));
+    const m = el("div", "meta");
+    m.append(el("b", null, "u/" + c.user));
+    if (c.op) m.append(" ", el("span", "optag", "OP"));
+    if (c.mod) m.append(" ", el("span", "modtag", "MOD"));
+    m.append(c.stickied ? " · Stickied comment"
+      : c.collapsed ? ` · ${c.score} points · comment score below threshold`
+      : ` · ${gen.short(c.score)} points` + (c.isTop ? " · Top comment" : ""));
+    box.append(m, el("div", null, c.text));
+    if (c.replies.length) {
+      const kids = el("div", "replies");
+      c.replies.forEach(r => kids.append(renderComment(r, op)));
+      box.append(kids);
+    }
+    return box;
+  }
+
+  function renderPost(seed) {
+    const p = gen.build(seed, dials());
+    const art = el("article", "post");
+    art.dataset.seed = seed;
+
+    const votes = el("div", "votes");
+    votes.append(el("span", "up", "▲"), el("span", null, gen.short(p.upvotes)), el("span", "down", "▼"));
+
+    const main = el("div", "main");
+    const meta = el("div", "meta");
+    meta.append(el("b", null, "r/" + p.sub), ` · Posted by u/${p.user} `);
+    if (p.mod) meta.append(el("span", "modtag", "MOD "));
+    meta.append(`· ${p.age}`);
+    const title = el("h2", "title", p.title);
+    if (p.flair) title.append(el("span", "flair", p.flair));
+    if (p.locked) title.append(el("span", "lock", "🔒 Locked"));
+    main.append(meta, title);
+    if (p.quote) main.append(renderQuote(p.quote));
+    if (p.image) { const im = el("div", "image", p.image); im.setAttribute("role", "img"); im.setAttribute("aria-label", p.image); main.append(im); }
+    if (p.body) main.append(el("div", p.removed ? "body removed" : "body", p.body));
+    if (p.archived) main.append(el("div", "archived", "Archived post. New comments cannot be posted and votes cannot be cast."));
+
+    const actions = el("div", "actions");
+    actions.append(el("span", null, `💬 ${gen.short(p.comments)} comments`));
+    const cText = el("button", null, "Copy text"); cText.type = "button";
+    cText.addEventListener("click", () => copy(asText(gen.build(seed, dials()))));
+    const cLink = el("button", null, "Copy link"); cLink.type = "button";
+    cLink.addEventListener("click", () => copy(location.href.split("#")[0] + "#p" + seed));
+    actions.append(cText, cLink, el("span", "no", seed));
+
+    main.append(actions);
+    const thread = el("div", "thread");
+    p.thread.forEach(c => thread.append(renderComment(c, p.user)));
+    main.append(thread);
+    art.append(votes, main);
+    return art;
+  }
+  function append(n) { for (let i = 0; i < n; i++) feed.append(renderPost(gen.randSeed())); }
+  function rerender() { const seeds = [...feed.children].map(a => a.dataset.seed); feed.replaceChildren(...seeds.map(renderPost)); }
+
+  const cohLabels = ["chaos", "loose", "plausible", "front page"];
+  const clapLabels = ["no", "boss fired", "slow clap", "Albert Einstein"];
+  const editLabels = ["none", "one", "two", "RIP inbox"];
+  const commLabels = ["top only", "a few", "a thread", "sort by controversial"];
+  function syncOutputs() { const d = dials(); $("cohOut").textContent = cohLabels[d.coh]; $("clapOut").textContent = clapLabels[d.clap]; $("editsOut").textContent = editLabels[d.edits]; $("commsOut").textContent = commLabels[d.comms]; }
+
+  ["coh", "clap", "edits", "comms"].forEach(id => $(id).addEventListener("input", () => { syncOutputs(); rerender(); }));
+  $("refresh").addEventListener("click", () => { feed.replaceChildren(); append(3); window.scrollTo({ top: 0 }); });
+
+  function start() {
+    $("count").textContent = `${gen.fmt(gen.wordCount)} words × ${gen.shapes} post shapes × ${gen.themeCount} themes.`;
+    $("loading").textContent = "The feed doesn't end.";
+    syncOutputs();
+    const linked = /^#p([a-z0-9]+)$/i.exec(location.hash);
+    if (linked) feed.append(renderPost(linked[1]));
+    append(linked ? 2 : 3);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) append(3); }, { rootMargin: "600px" }).observe($("sentinel"));
+    }
+  }
+
+  function fail(msg) { $("count").textContent = ""; $("loading").textContent = msg; }
+  fetch("lexicon.json")
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status + " fetching lexicon.json"); return r.json(); })
+    .then(d => { gen = createGenerator(d); start(); })
+    .catch(e => fail("Couldn't build the feed: " + e.message));
+})();
+</script>
+
+</body>
+</html>
