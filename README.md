@@ -13,7 +13,7 @@ Open the [live page](https://thrash-d.github.io/all-possible-reddit-posts/), or 
 - Coherence: chaos to front page. Low is pure dictionary nonsense. High pulls the words toward common ones and toward the post's theme.
 - Everyone clapped: how the story ends. Off, then the boss gets fired, then a slow clap, then the kid turns out to be Albert Einstein.
 - Edits: how many "EDIT: wow this blew up" lines a post can get, up to three.
-- Comments: how big the thread is. Most comments are built from random parts and dictionary words, like the posts, so a long scroll rarely repeats one. From the top comment alone up to a full thread: reply chains, pun threads, "Source?" "Trust me bro.", and OP showing up to make it worse.
+- Comments: how big the thread is. Each step is a range, so thread size varies from post to post. Most comments are built from random parts and dictionary words, like the posts, so a long scroll rarely repeats one. From the top comment alone up to a full thread: reply chains, pun threads, "Source?" "Trust me bro.", and OP showing up to make it worse.
 
 "Copy link" copies a link with the post's seed in it. Opening that link rebuilds the same post.
 
