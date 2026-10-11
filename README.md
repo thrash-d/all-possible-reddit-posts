@@ -1,10 +1,12 @@
 # All Possible Reddit Posts
 
+**[Try it live](https://thrash-d.github.io/all-possible-reddit-posts/)**
+
 An endless Reddit feed of generated posts. The coworker whose laptop died the day before the big client meeting. The four-year-old who silenced a bus. The manager who got exactly what he asked for. Every post is built from the whole English dictionary, so no two match.
 
 ## Use
 
-Download `reddit-posts-standalone.html` and open it in a browser. It runs offline.
+Open the [live page](https://thrash-d.github.io/all-possible-reddit-posts/), or download `reddit-posts-standalone.html` and open it in a browser. It runs offline.
 
 ## The dials
 

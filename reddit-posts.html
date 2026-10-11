@@ -77,6 +77,10 @@
   .comment.sticky { border-left-color: #2fb36b; }
   .lock { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #3a3220; color: #e8c15a; font-size: 12px; font-weight: 500; vertical-align: 2px; }
   .removed { color: var(--faint); font-style: italic; }
+  .awards { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: middle; }
+  .award { font-size: 12px; padding: 0 6px; border-radius: 999px; background: #2a2a2d; color: var(--text-2); cursor: default; }
+  .bot { color: var(--text-2); }
+  .botnote { color: var(--faint); font-size: 11px; font-style: italic; }
   .image { aspect-ratio: 16 / 9; max-height: 240px; max-width: 420px; border-radius: 4px; background: repeating-linear-gradient(45deg, #232325, #232325 12px, #1f1f21 12px, #1f1f21 24px); display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); font-size: 14px; font-style: italic; }
   .optag { color: #4a90d9; font-weight: 700; }
 
@@ -161,17 +165,33 @@
     return shot;
   }
 
+  // A row of award icons. Hover shows the name.
+  // Posts show award names; comments show icons only, like the real thing.
+  function renderAwards(list, named) {
+    const row = el("span", "awards");
+    list.forEach(a => {
+      const chip = el("span", "award", a.icon + (named ? " " + a.name : "") + (a.count > 1 ? " ×" + a.count : ""));
+      chip.title = a.name;
+      chip.setAttribute("aria-label", a.name + (a.count > 1 ? " ×" + a.count : ""));
+      row.append(chip);
+    });
+    return row;
+  }
+
   // One comment and its replies, nested.
   function renderComment(c, op) {
     const box = el("div", "comment" + (c.stickied ? " sticky" : "") + (c.collapsed ? " buried" : ""));
     const m = el("div", "meta");
-    m.append(el("b", null, "u/" + c.user));
+    m.append(el("b", null, c.user === "[deleted]" ? c.user : "u/" + c.user));
     if (c.op) m.append(" ", el("span", "optag", "OP"));
     if (c.mod) m.append(" ", el("span", "modtag", "MOD"));
     m.append(c.stickied ? " · Stickied comment"
+      : c.mod ? " · Moderator"
       : c.collapsed ? ` · ${c.score} points · comment score below threshold`
       : ` · ${gen.short(c.score)} points` + (c.isTop ? " · Top comment" : ""));
-    box.append(m, el("div", null, c.text));
+    if (c.awards) m.append(" ", renderAwards(c.awards));
+    box.append(m, el("div", c.removed ? "removed" : c.bot ? "bot" : null, c.text));
+    if (c.bot) box.append(el("div", "botnote", "I am a bot, and this action was performed automatically. Please contact the moderators of this subreddit if you have any questions or concerns."));
     if (c.replies.length) {
       const kids = el("div", "replies");
       c.replies.forEach(r => kids.append(renderComment(r, op)));
@@ -197,6 +217,7 @@
     if (p.flair) title.append(el("span", "flair", p.flair));
     if (p.locked) title.append(el("span", "lock", "🔒 Locked"));
     main.append(meta, title);
+    if (p.awards.length) main.append(renderAwards(p.awards, true));
     if (p.quote) main.append(renderQuote(p.quote));
     if (p.image) { const im = el("div", "image", p.image); im.setAttribute("role", "img"); im.setAttribute("aria-label", p.image); main.append(im); }
     if (p.body) main.append(el("div", p.removed ? "body removed" : "body", p.body));

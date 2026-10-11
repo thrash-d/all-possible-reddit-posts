@@ -100,7 +100,7 @@
     // are mostly places and acronyms, which make bad coworkers.
     // {name} is the manager or neighbor, and the templates call him "he".
     const NAMES = ["Donny", "Gary", "Kevin", "Doug", "Rick", "Todd", "Chad", "Steve", "Brad", "Greg",
-      "Dale", "Randy", "Darryl", "Hank", "Mitch", "Scott", "Dwayne", "Cody", "Trent", "Rusty"];
+      "Dale", "Randy", "Darryl", "Hank", "Mitch", "Scott", "Dwayne", "Kyle", "Trent", "Rusty"];
     const POSTERS = NAMES.concat(["Brenda", "Tammy", "Sharon", "Karen", "Linda", "Deb", "Cheryl", "Pam",
       "Barb", "Tina", "Becky", "Lorraine", "Denise", "Wendy"]);
     const RELS = [["sister", "F"], ["brother", "M"], ["MIL", "F"], ["SIL", "F"], ["cousin", "F"],
@@ -254,6 +254,44 @@
       "Update: the {thing} {verb.past}.", "I did not come here to be called a {noun}.", "Ok, the {thing} is {adj}. I admit it.",
       "For the record, the {noun} was my {rel}'s idea.", "I'm reading every comment. Even yours, {noun}.",
       "Bold of you to assume I {verb} {thing.pl}."];
+    // ---------- awards ----------
+    // The real ones from the years Reddit sold them, plus made-up ones in the
+    // same spirit. A post or comment gets a few, whether it earned them or not.
+    const AWARDS = [["🥈", "Silver"], ["🥇", "Gold"], ["💎", "Platinum"], ["🤗", "Wholesome"], ["🤝", "Helpful"],
+      ["⚡", "Take My Energy"], ["🚀", "Rocket Like"], ["👏", "Bravo Grande!"], ["☝️", "This"], ["🤩", "Starstruck"],
+      ["💀", "I'm Deceased"], ["🤯", "Mind Blown"], ["😷", "Wearing is Caring"], ["🌲", "Tree Hug"], ["🫂", "Hugz"],
+      ["🤦", "Facepalm"], ["🏳️‍🌈", "Ally"], ["🏆", "Got the W"], ["💖", "Heartwarming"], ["🙏", "Bless Up"],
+      ["🎺", "Doot Doot"], ["🇫", "Press F"], ["🪙", "Pot o' Coins"], ["🐐", "GOAT"], ["🤡", "Clown"],
+      ["🧢", "Cap"], ["🍿", "Popcorn"], ["🫡", "Salute"], ["🥲", "Bittersweet"], ["🔥", "Hot Take"]];
+    const MADE_UP = ["{Adj} {Thing} Award", "The {Thing}", "{Noun} of the Year", "Certified {Noun}", "Galaxy {Thing}",
+      "Wholesome {Noun}", "{Thing} Tax", "Gold (Expired)"];
+    function makeAwards(x, rng, n) {
+      const out = [];
+      for (let k = 0; k < n; k++) {
+        const a = rng() < 0.8 ? one(AWARDS, rng) : ["🏅", x(one(MADE_UP, rng))];
+        const prev = out.find(o => o.name === a[1]);
+        if (prev) prev.count++;
+        else out.push({ icon: a[0], name: a[1], count: 1 + (rng() < 0.2 ? int(1, 40, rng) : 0) });
+      }
+      return out;
+    }
+
+    // ---------- the mods, in the comments ----------
+    const MOD_REMOVALS = ["Removed. Rule 1: be civil.", "Removed. Rule {N}: no {noun.pl}.", "Removed for brigading from r/{other}.",
+      "Removed. We don't do {thing.pl} here.", "Removed. Your comment was {adj}. Please read the sidebar.",
+      "Removed for incivility. The other guy too. Everyone, actually.", "Removed. Rule 3: no politics. This includes the {thing}.",
+      "Removed. Low effort. Please put more effort into your {thing} jokes."];
+    const MOD_LOCKS = ["Locking this thread. You all did this.", "Locked. I'm not reading {N}00 reports about a {thing}.",
+      "Locked because the comments are about {noun.pl} now, somehow.", "Thread locked. Go outside. Look at a {thing}."];
+    const MOD_CHIMES = ["Ok, everyone chill.", "This is your only warning. Talk about the {thing}.", "Please report, don't reply.",
+      "Mod here. Both of you are banned. Have a good day.", "Approving this comment because it's the only on-topic one."];
+    const AUTOMOD = ["Hello u/{op}! Your post has been flaired as {flair}. Please read the rules before commenting.",
+      "Your post is visible, but it's been reported {N} times. A mod will check it after their {thing}.",
+      "Reminder: this subreddit does not allow {noun.pl}. If you see one, report it.",
+      "OP has replied to {N} comments in this thread. Click here to see them. Or don't.",
+      "Your comment has been removed because your account is less than {N} days old.",
+      "Snapshot of the original post, in case OP edits it: \"{TITLE}\""];
+
     // ---------- comments built from parts ----------
     // Fixed lines repeat in a long scroll. Most comments are built instead: an
     // opener, a core sentence with dictionary slots, and a closer.
@@ -1414,8 +1452,31 @@
       const rest = thread.filter(c => !c.stickied && !c.isTop).sort((m, n) => n.score - m.score);
       const commentTree = fixed.concat(rest);
 
+      // Mods in the thread: a removed comment with the reason under it, a mod
+      // chiming in, or a lock under the top comment.
+      const modNode = text => node(ctx.mod, x(text), 1, { mod: true });
+      const walkAll = (list, f) => list.forEach(c => { f(c); walkAll(c.replies, f); });
+      walkAll(rest, c => {
+        if (c.mod || rng() > 0.1) return;
+        c.text = "[removed]"; c.removed = true; c.user = "[deleted]";
+        c.replies.unshift(modNode(one(MOD_REMOVALS, rng)));
+      });
+      if (rest.length && rng() < 0.12) one(rest, rng).replies.push(modNode(one(MOD_CHIMES, rng)));
+      if (!locked && rng() < 0.06) { locked = true; top.replies.unshift(modNode(one(MOD_LOCKS, rng))); }
+      if (rng() < 0.25) {
+        commentTree.unshift(node("AutoModerator", x(one(AUTOMOD, rng).replace("{op}", user)
+          .replace("{flair}", p.flair || "Discussion").replace("{TITLE}", p.title.replace(/[{}]/g, ""))), 1, { mod: true, stickied: true, bot: true }));
+      }
+
+      // Awards on the post and on comments, mostly on the top comment.
+      const postAwards = rng() < (p.big ? 0.8 : 0.4) ? makeAwards(x, rng, int(1, p.big ? 9 : 4, rng)) : [];
+      walkAll(commentTree, c => {
+        if (c.mod || c.collapsed || c.removed) return;
+        if (rng() < (c.isTop ? 0.45 : 0.06)) c.awards = makeAwards(x, rng, int(1, c.isTop ? 5 : 2, rng));
+      });
+
       return withSub({
-        seed, shape, sub: ctx.sub, user, title: p.title, image, reply, thread: commentTree,
+        seed, shape, sub: ctx.sub, user, title: p.title, image, reply, thread: commentTree, awards: postAwards,
         sticky, locked, removed: !!p.removed,
         body: paras.join("\n\n"), quote: p.quote || null, flair: p.flair || null,
         top: { user: makeUser(pick, rng), text: topText, upvotes: Math.floor(upvotes * (0.2 + rng() * 0.9)) },
