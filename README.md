@@ -17,6 +17,8 @@ Image posts show a photo from [Wikimedia Commons](https://commons.wikimedia.org/
 - Edits: how many "EDIT: wow this blew up" lines a post can get, up to three.
 - Comments: how big the thread is. Each step is a range, so thread size varies from post to post. Most comments are built from random parts and dictionary words, like the posts, so a long scroll rarely repeats one. From the top comment alone up to a full thread: reply chains, pun threads, "Source?" "Trust me bro.", and OP showing up to make it worse.
 
+- Hivemind: how much of the feed is the usual Reddit grievances. Posts and comments about the politician everyone hates, Republicans, the boss, boomer parents, landlords, and having to work at all. Touch grass turns it off. Thanksgiving dinner puts it in most comments.
+
 "Copy link" copies a link with the post's seed in it. Opening that link rebuilds the same post.
 
 ## Post shapes
