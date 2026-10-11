@@ -336,8 +336,53 @@
       s = s.replace(/^\s+/, "").replace(/([.!?] )([a-z])/g, (m, a, b) => a + b.toUpperCase());
       return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
+    // ---------- the hivemind ----------
+    // What every thread drifts toward: the politician everyone hates, the boss,
+    // the boomer parents, the job. The Hivemind dial sets how much of the feed
+    // and the comments come from here. Opinions only, never a quote.
+    const HIVE_MIX = [0, 0.15, 0.35, 0.6];
+    let hive = HIVE_MIX[2];
+    const HIVE_TAKES = ["this is what happens when you vote {pol}", "can't wait for {pol} to take credit for the {thing}",
+      "Republicans will see this and somehow blame {thing.pl}", "conservatives when they find out the {thing} was woke all along",
+      "imagine voting against your own {thing} just to own the libs", "every accusation is a confession with these people",
+      "the GOP has been at war with {thing.pl} since {year}", "this sub is the only thing keeping me sane under {pol}",
+      "{hero} was right about this in {year}", "{pol} couldn't find a {thing} with both hands and a map",
+      "the {pol} crowd is going to call this fake news", "late stage capitalism in one {thing}", "eat the rich, and their {thing.pl}",
+      "healthcare is a human right. So is the {thing}", "this is the most American thing I've ever seen and I'm not even American",
+      "in {foreign} we just get free {thing.pl} and nobody calls it socialism", "billionaires shouldn't exist. Neither should this {thing}",
+      "my boss would turn this into a mandatory {event}", "imagine giving your boss more than the bare minimum. Couldn't be me",
+      "work is a scam and {thing.pl} are the proof", "I do two hours of real work a day and my manager thinks I'm a {noun}",
+      "quiet quitting is just doing your job description and I'll die on this hill", "\"nobody wants to work anymore,\" said every boss since {year}",
+      "your company would replace you with a {thing} the second it could", "HR is not your friend. HR is the {thing}",
+      "return to office is about {thing.pl}, not productivity", "the CEO got a raise for this. You got a {thing}",
+      "boomers bought a house for {N} dollars and a {thing} and they call us lazy",
+      "my {rel} still thinks you get a job by walking in with a firm handshake and a {thing}", "this is why I went no contact",
+      "boomer parents when the {thing} doesn't have a cord", "my {rel} forwarded me this on Facebook as if it's real",
+      "landlords produce nothing. Not even {thing.pl}", "people who say \"get a real job\" have never {verb.past} a {thing} in their life",
+      "the grindset guys want you up at 4 a.m. to {verb} a {thing} for free", "the LinkedIn crowd is going to turn this into a lesson about {noun.pl}",
+      "rent is {N}00 a month for a {thing} and they wonder why nobody has kids"];
+    const HIVE_PILES = ["ok boomer", "bootlicker", "found the {pol} voter", "spoken like a landlord",
+      "tell me you've never had a real job without telling me", "your boss isn't going to marry you, bro", "cool story, {pol} supporter",
+      "checked your post history. r/conservative. Figures.", "sir, this is r/{sub}, not Truth Social", "imagine simping for a billionaire's {thing}",
+      "the boot isn't going to lick itself, I guess", "least brainwashed Fox News viewer", "you sound like my {rel} at Thanksgiving",
+      "go back to Facebook, {noun}", "username should be {pol}_{thing}_fan", "you're the reason HR exists"];
+    const HIVE_QUIPS = ["eat the rich", "late stage capitalism", "this is America", "touch grass, boomer", "{pol} moment", "thanks, {pol}",
+      "unionize", "every. single. time.", "and they wonder why nobody wants kids", "capitalism breeds innovation, apparently",
+      "abolish {noun.pl}", "not the onion", "{hero} would never", "vote", "the leopards are eating well tonight", "ok boomer"];
+    const HIVE_EDITS = ["To the {pol} supporters in my DMs: no.", "Wow, didn't expect the {pol} crowd to find this post.",
+      "No, I'm not going to \"just get another job,\" {noun}.", "My boss found this. I'm not deleting it.",
+      "My {rel} found this. Hi Mom. We're still not talking.", "For everyone saying \"just move\": with what {thing}?",
+      "Not political, but {pol} is a {noun}."];
+    function hiveComment(x, rng, kind) {
+      const core = one(kind === "pile" ? HIVE_PILES : kind === "quip" ? HIVE_QUIPS : HIVE_TAKES, rng);
+      const open = kind === "take" ? one(OPENERS, rng) : "";
+      const close = /[.?!]$/.test(core) ? "" : one(CLOSERS, rng);
+      return sentence(x(open + core + close));
+    }
+
     // kind: "take" (a top-level comment), "pile" (a mean reply), "quip" (a short reply).
     function makeComment(x, rng, kind) {
+      if (hive && rng() < hive) return hiveComment(x, rng, kind);
       const core = one(kind === "pile" ? PILES : kind === "quip" ? QUIPS : TAKES, rng);
       const open = kind === "quip" ? "" : one(OPENERS, rng);
       const close = /[.?!]$/.test(core) ? one(["", "", " lol", " 💀"], rng) : one(CLOSERS, rng);
@@ -1258,6 +1303,47 @@
         buried: ["You destroyed a marriage over one sentence from 20 years ago?", "You stole her money. That's a crime. Like, a real one."]
       }),
 
+      // The hivemind shapes. The Hivemind dial draws these, not the plain draw.
+      politics: S(["politics", "PoliticalHumor", "WhitePeopleTwitter", "LeopardsAteMyFace", "facepalm"], [
+        "{pol} supporter shocked to learn the {thing} he voted against was his {thing}",
+        "Leopards ate my face: {pol} voter loses his {thing}", "Reminder that {pol} has never once {verb.past} a {thing}",
+        "Conservatives are mad at {thing.pl} now", "{hero} just ended {pol}'s whole career with one {thing}",
+        "Every single Republican voted against free {thing.pl}. Remember that in November.",
+        "{pol} is the most {adj} politician in American history and it isn't close", "The GOP's new enemy: {thing.pl}"
+      ], [""], ["Every accusation is a confession.", "Vote.", "This aged like milk.", "The leopards are eating well this year.",
+        "He'll be fine. They always are.", "Can't wait for the Fox News segment blaming this on {hero}.",
+        "Remember this in November.", "Not the Onion, somehow."], {
+        sticky: true, buried: ["Both sides are the same.", "Not a {pol} supporter, but this sub is an echo chamber."]
+      }),
+
+      boss: S(["antiwork", "WorkReform", "recruitinghell", "jobs"], [
+        "My boss texted me at {N} a.m. on my day off about a {thing}",
+        "Manager said \"we're a family here\" and then cut the {thing} budget",
+        "Got written up for {verb.ing} a {thing} on my lunch break",
+        "\"Nobody wants to work anymore,\" says the man paying {N} dollars an hour",
+        "Corporate wants us back in the office so we can {verb} the {thing} in person",
+        "Company made record profits, so they gave us a pizza party and a {thing}",
+        "Job posting wants {N} years of experience with a {thing} that came out last year"
+      ], ["I make {N} dollars an hour. The CEO made {N} million last year. I'm done.\n\nMy {thing} at home respects me more than this company.",
+        "I said no. Then I said no again. Then I put in my two weeks.", ""],
+      ["Unionize.", "Your boss isn't your friend.", "Malicious compliance time.", "Start looking. Today.",
+        "\"We're a family\" means they'll guilt you into working for free.", "Get it in writing. Then post it here."], {
+        buried: ["Have you tried just doing your job?", "Sounds like you'd be happier somewhere else. So go."]
+      }),
+
+      boomer: S(["BoomersBeingFools", "insaneparents", "raisedbynarcissists", "JUSTNOMIL"], [
+        "My {rel} thinks I could buy a house if I stopped buying {thing.pl}",
+        "Boomer at the {event} yelled at a teenager for {verb.ing} a {thing}",
+        "My parents say I'm lazy. I work two jobs and a {thing}.", "My dad still thinks the {thing} is a phone",
+        "Mom made my {event} about her {thing} again", "Boomer neighbor called the cops on my {thing}"
+      ], ["", "He bought his first house at {N} for the price of a {thing}. Now he tells me to pull myself up by my bootstraps.",
+        "I'm {N}. I have a degree in {noun.pl}. I live in their basement. They charge me rent."],
+      ["Boomers had it so easy and they still complain.", "Ok boomer.", "This is why I went no contact.",
+        "Your parents are the {thing} in this story.", "My {rel} is exactly the same. Must be in the water.",
+        "They'll be shocked when nobody visits the nursing home."], {
+        buried: ["They're your parents. They did their best.", "Not every boomer is like this, guys."]
+      }),
+
       dogpile: (x, rng) => ({
         sub: "{big}",
         title: x(one(["What time does the {thing} store close?", "I like {noun.pl}. Anyone else?",
@@ -1281,7 +1367,11 @@
       })
     };
     // Weighting: the screenshot and the clapper are the genre, so they come up most.
-    const DRAW = Object.keys(SHAPES).concat(["screenshot", "screenshot", "screenshot", "bus", "malicious", "aita"]);
+    const HIVE_ONLY = ["politics", "boss", "boomer"];
+    const DRAW = Object.keys(SHAPES).filter(k => !HIVE_ONLY.includes(k))
+      .concat(["screenshot", "screenshot", "screenshot", "bus", "malicious", "aita"]);
+    // The Hivemind dial swaps in one of these, the ones about work, parents, and politics.
+    const HIVE_DRAW = HIVE_ONLY.concat(HIVE_ONLY, ["screenshot", "quit", "nocontact", "worldnews", "teacherpay", "lazy", "lunatics"]);
 
     // Themes that fit a shape's sub, so r/aww gets animal words and r/Cooking
     // gets food. A shape not listed here draws any theme.
@@ -1320,7 +1410,9 @@
     // ---------- post assembly ----------
     function build(seed, dials) {
       const rng = makeRng(seed);
-      const shape = one(DRAW, rng);
+      hive = HIVE_MIX[dials.hive == null ? 2 : dials.hive];
+      let shape = one(DRAW, rng);
+      if (hive && rng() < hive) shape = one(HIVE_DRAW, rng);
       const fit = (SHAPE_THEMES[shape] || []).map(t => themeNames.indexOf(t)).filter(i => i >= 0);
       const themeIdx = fit.length ? one(fit, rng) : Math.floor(rng() * THEMES.length);
       const pick = makePicker(rng, themeIdx, dials.coh);
@@ -1355,7 +1447,8 @@
       // not every post edits: the dial sets the most, not the exact count.
       const did = upvotes >= 5000 ? "big" : upvotes < 800 ? "small" : "";
       const fits = EDITS.filter(e => { const t = (/^(big|small):/.exec(e) || [])[1]; return !t || t === did; })
-        .map(e => e.replace(/^(big|small):/, ""));
+        .map(e => e.replace(/^(big|small):/, ""))
+        .concat(hive ? HIVE_EDITS.filter(() => rng() < hive) : []);
       const editCount = p.removed || p.mod ? 0 : Math.min(dials.edits, Math.floor(rng() * (dials.edits + 1.6)));
       const edits = shuffle(fits, rng).slice(0, editCount);
       if (edits.length) {
@@ -1376,6 +1469,7 @@
       // two posts of the same shape don't share a top comment.
       const tr = rng();
       let topText = tr < 0.05 ? x(one(REDDITISMS, rng)) : tr < 0.4 ? makeComment(x, rng, "take") : x(p.top), reply = null;
+      if (hive && tr >= 0.05 && rng() < hive / 2) topText = hiveComment(x, rng, "take");
       let user = p.user ? x(p.user) : makeUser(pick, rng);
       if (topText === "Username checks out.") {
         // Make it check out: OP's name is the longest word in the title.
