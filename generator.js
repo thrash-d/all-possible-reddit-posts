@@ -1418,7 +1418,9 @@
       if (top.replies.length && rng() < 0.4) top.replies[0].replies.push(node(makeUser(pick, rng), makeComment(x, rng, rng() < 0.5 ? "pile" : "quip"), int(1, 400, rng)));
       if (p.buried) top.replies.push(node(makeUser(pick, rng), x(one(p.buried, rng)), -int(12, 900, rng), { collapsed: true }));
       thread.push(top);
-      const more = [0, 2, 4, 7][dials.comms == null ? 2 : dials.comms];
+      // Each dial step is a range, so no two posts get the same size thread.
+      const [lo, hi] = [[0, 0], [1, 4], [2, 9], [5, 15]][dials.comms == null ? 2 : dials.comms];
+      const more = int(lo, hi, rng);
       // Built comments, mostly. The classic chains and stock lines are the
       // seasoning: rare enough that a long scroll doesn't repeat them.
       const used = new Set([topText]);
