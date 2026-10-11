@@ -1394,7 +1394,9 @@
         reply = { user, op: true, text: x(one(ops, rng)) };
       }
       else if (roll < 0.42) reply = { user: makeUser(pick, rng), text: rng() < 0.15 ? x(one(PILE_ON, rng)) : makeComment(x, rng, "pile") };
-      const image = !p.body && !p.quote && !p.removed && !TEXT_SUBS.has(ctx.sub) ? x(one(IMAGE_ALT, rng)) : null;
+      // Image posts name one thing. The page looks that word up for a real photo.
+      const photo = !p.body && !p.quote && !p.removed && !TEXT_SUBS.has(ctx.sub) ? form(pick, "thing") : null;
+      const image = photo ? x(one(IMAGE_ALT, rng).replace(/\{thing\}/g, photo)) : null;
 
       // ---------- the comment section ----------
       // A tree: each comment has replies. The top comment comes first, then
@@ -1478,7 +1480,7 @@
       });
 
       return withSub({
-        seed, shape, sub: ctx.sub, user, title: p.title, image, reply, thread: commentTree, awards: postAwards,
+        seed, shape, sub: ctx.sub, user, title: p.title, image, photo, reply, thread: commentTree, awards: postAwards,
         sticky, locked, removed: !!p.removed,
         body: paras.join("\n\n"), quote: p.quote || null, flair: p.flair || null,
         top: { user: makeUser(pick, rng), text: topText, upvotes: Math.floor(upvotes * (0.2 + rng() * 0.9)) },

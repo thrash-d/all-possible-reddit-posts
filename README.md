@@ -8,6 +8,8 @@ An endless Reddit feed of generated posts. The coworker whose laptop died the da
 
 Open the [live page](https://thrash-d.github.io/all-possible-reddit-posts/), or download `reddit-posts-standalone.html` and open it in a browser. It runs offline.
 
+Image posts show a photo from [Wikimedia Commons](https://commons.wikimedia.org/), found by searching the post's subject word. The caption under each photo names the file, its author, and its license. Offline, or when the search finds nothing, the post shows the striped placeholder with a description instead.
+
 ## The dials
 
 - Coherence: chaos to front page. Low is pure dictionary nonsense. High pulls the words toward common ones and toward the post's theme.
